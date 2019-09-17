@@ -1,0 +1,56 @@
+表格筛选分离
+Sub 拆分表_数组()
+Dim d As Object, brr()
+Dim rng As Range, sht As Worksheet
+Dim myarea As Range
+Dim targetarea As Range
+On Error Resume Next
+Set d = CreateObject("scripting.dictionary")
+Set rng = Application.InputBox("请选择标志单元格，表头与拆分列最后一个交叉单元格", Type:=8)
+If rng Is Nothing Then Exit Sub
+Application.ScreenUpdating = False
+cl = rng.Column
+rw = Cells(Rows.Count, cl).End(xlUp).Row
+If rw <= rng.Offset(1).Row Then Exit Sub
+Set myarea = Range(rng.Offset(1), rng.Offset(1).End(xlDown))
+arr = myarea
+adr = myarea.Address
+For i = 1 To UBound(arr)
+    d(arr(i, 1)) = d(arr(i, 1)) & i & "@"
+Next
+Set sht = ActiveSheet
+For Each k In d.Keys
+    d(k) = "@" & d(k)
+    sht.Copy after:=ActiveSheet
+    ActiveSheet.Name = k
+    Set myarea = Range(adr)
+    arr = myarea
+    ReDim brr(1 To UBound(arr), 1 To 1)
+    For i = 1 To UBound(arr)
+        If InStr(d(k), "@" & i & "@") Then
+            brr(i, 1) = arr(i, 1)
+        End If
+    Next
+    myarea.ClearContents
+    myarea = brr
+    myarea.SpecialCells(xlCellTypeBlanks).EntireRow.Delete
+Next
+Application.ScreenUpdating = True
+End Sub
+
+
+
+
+
+拆分已有Sheet
+Sub fencun()
+Application.ScreenUpdating = False
+For each sht in thisworkbook.sheets
+   sht.copy
+   With ActiveWorkbook
+      .SaveAs Filename:=ThisWorkbook.Path & "\" & sht.name & ".xlsx"
+      .Close True
+     End With
+Next
+Application.ScreenUpdating = true
+End Sub
